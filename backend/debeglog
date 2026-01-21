@@ -78,3 +78,18 @@
 2026-01-21 04:08:42.462 | INFO     | uvicorn.protocols.http.httptools_impl:send:483 - 127.0.0.1:42368 - "GET /static/favicon.png HTTP/1.1" 304
 
 The email or password provided is incorrect. Please check for typos and try logging in again.
+
+
+
+2026-01-21 05:36:56.650 | DEBUG    | httpcore._trace:atrace:87 - response_closed.complete
+2026-01-21 05:36:56.650 | DEBUG    | httpcore._trace:atrace:87 - close.started
+2026-01-21 05:36:56.650 | DEBUG    | httpcore._trace:atrace:87 - close.complete
+2026-01-21 05:36:56.650 | WARNING  | open_webui.utils.oauth:handle_callback:1522 - SSO token response missing access_token: {'errorDesc': 'client_id Parameter error.', 'errorCode': 'E_10001'}
+2026-01-21 05:36:56.650 | ERROR    | open_webui.utils.oauth:handle_callback:1733 - Error during OAuth process: 400: The email or password provided is incorrect. Please check for typos and try logging in again.
+2026-01-21 05:36:56.651 | INFO     | uvicorn.protocols.http.httptools_impl:send:483 - 127.0.0.1:58332 - "GET /oauth/sso/login/callback?code=31303130EFB7F9ED1F80B6B4CD1161AA71C674420AC3545F71F8AC616FD0E14FB0F6C54CA17656DD51D0C48D2DC1EBF4D2C8DDC4B94DED102C6DC3DACA1310ADBDD9A3A06CDE9407B10E86454CF1B33FD048C4925BF70D23294AEDA7ECFB4CE7200EF0FF51A402F6ED0AB59DF4E11A0C4C61D543AF9C78C7BE9F81B6823BDEC11F804F6A&state=cdh6llW38zbFoIGVaqTnhXQKLTqeO4 HTTP/1.1" 307
+2026-01-21 05:36:56.693 | INFO     | uvicorn.protocols.http.httptools_impl:send:483 - 127.0.0.1:58348 - "GET /static/loader.js HTTP/1.1" 304
+2026-01-21 05:36:56.694 | INFO     | uvicorn.protocols.http.httptools_impl:send:483 - 127.0.0.1:58362 - "GET /static/custom.css HTTP/1.1" 304
+2026-01-21 05:36:56.704 | INFO     | uvicorn.protocols.http.httptools_impl:send:483 - 127.0.0.1:58366 - "GET /static/splash.png HTTP/1.1" 304
+2026-01-21 05:36:56.858 | INFO     | uvicorn.protocols.http.httptools_impl:send:483 - 127.0.0.1:58368 - "GET /api/config HTTP/1.1" 200
+2026-01-21 05:36:56.859 | INFO     | uvicorn.protocols.http.httptools_impl:send:483 - 127.0.0.1:58374 - "GET /static/favicon.png HTTP/1.1" 304
+2026-01-21 05:36:56.880 | INFO     | uvicorn.protocols.http.httptools_impl:send:483 - 127.0.0.1:58386 - "GET /static/favicon.png HTTP/1.1" 304
