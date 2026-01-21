@@ -196,6 +196,42 @@ def _build_oauth_callback_error_message(e: Exception) -> str:
     return message[:197] + "..." if len(message) > 200 else message
 
 
+def _get_provider_config(provider: str) -> dict:
+    return OAUTH_PROVIDERS.get(provider, {}) if provider else {}
+
+
+def _pick_first_claim(user_data: dict, claims: list[str]) -> Optional[str]:
+    for claim in claims:
+        if not claim:
+            continue
+        value = user_data.get(claim)
+        if value:
+            return value
+    return None
+
+
+async def _post_json(url: str, payload: dict, headers: Optional[dict] = None):
+    if not url:
+        return None
+    async with aiohttp.ClientSession(trust_env=True) as session:
+        async with session.post(
+            url,
+            json=payload,
+            headers=headers or {},
+            ssl=AIOHTTP_CLIENT_SESSION_SSL,
+        ) as resp:
+            if resp.status >= 400:
+                error_text = await resp.text()
+                raise HTTPException(
+                    status_code=resp.status,
+                    detail=f"Upstream provider returned {resp.status}: {error_text}",
+                )
+            try:
+                return await resp.json()
+            except Exception:
+                return None
+
+
 def is_in_blocked_groups(group_name: str, groups: list) -> bool:
     """
     Check if a group name matches any blocked pattern.
@@ -1404,6 +1440,7 @@ class OAuthManager:
             raise HTTPException(404)
 
         error_message = None
+        provider_config = _get_provider_config(provider)
         try:
             client = self.get_client(provider)
 
@@ -1430,12 +1467,27 @@ class OAuthManager:
 
             # Try to get userinfo from the token first, some providers include it there
             user_data: UserInfo = token.get("userinfo")
+            email_claim = provider_config.get("email_claim") or auth_manager_config.OAUTH_EMAIL_CLAIM
+            username_claim = provider_config.get("username_claim") or auth_manager_config.OAUTH_USERNAME_CLAIM
             if (
                 (not user_data)
-                or (auth_manager_config.OAUTH_EMAIL_CLAIM not in user_data)
-                or (auth_manager_config.OAUTH_USERNAME_CLAIM not in user_data)
+                or (email_claim not in user_data)
+                or (username_claim not in user_data)
             ):
-                user_data: UserInfo = await client.userinfo(token=token)
+                userinfo_method = provider_config.get("userinfo_method")
+                if userinfo_method == "post_json":
+                    userinfo_url = provider_config.get("userinfo_url") or getattr(
+                        client, "userinfo_endpoint", None
+                    )
+                    payload = {
+                        "client_id": getattr(client, "client_id", None),
+                        "access_token": token.get("access_token"),
+                        "scope": token.get("scope"),
+                    }
+                    payload = {k: v for k, v in payload.items() if v}
+                    user_data = await _post_json(userinfo_url, payload)
+                if not user_data:
+                    user_data = await client.userinfo(token=token)
             if (
                 provider == "feishu"
                 and isinstance(user_data, dict)
@@ -1451,7 +1503,10 @@ class OAuthManager:
                 sub = user_data.get(auth_manager_config.OAUTH_SUB_CLAIM)
             else:
                 # Fallback to the default sub claim if not configured
-                sub = user_data.get(OAUTH_PROVIDERS[provider].get("sub_claim", "sub"))
+                sub = user_data.get(provider_config.get("sub_claim", "sub"))
+                if not sub:
+                    sub_fallbacks = provider_config.get("sub_claim_fallbacks") or []
+                    sub = _pick_first_claim(user_data, sub_fallbacks)
             if not sub:
                 log.warning(f"OAuth callback failed, sub is missing: {user_data}")
                 raise HTTPException(400, detail=ERROR_MESSAGES.INVALID_CRED)
@@ -1462,7 +1517,6 @@ class OAuthManager:
             }
 
             # Email extraction
-            email_claim = auth_manager_config.OAUTH_EMAIL_CLAIM
             email = user_data.get(email_claim, "")
             # We currently mandate that email addresses are provided
             if not email:
@@ -1543,7 +1597,7 @@ class OAuthManager:
                     user.role = determined_role
                 # Update profile picture if enabled and different from current
                 if auth_manager_config.OAUTH_UPDATE_PICTURE_ON_LOGIN:
-                    picture_claim = auth_manager_config.OAUTH_PICTURE_CLAIM
+                    picture_claim = provider_config.get("picture_claim") or auth_manager_config.OAUTH_PICTURE_CLAIM
                     if picture_claim:
                         new_picture_url = user_data.get(
                             picture_claim,
@@ -1565,7 +1619,7 @@ class OAuthManager:
                     if existing_user:
                         raise HTTPException(400, detail=ERROR_MESSAGES.EMAIL_TAKEN)
 
-                    picture_claim = auth_manager_config.OAUTH_PICTURE_CLAIM
+                    picture_claim = provider_config.get("picture_claim") or auth_manager_config.OAUTH_PICTURE_CLAIM
                     if picture_claim:
                         picture_url = user_data.get(
                             picture_claim,
@@ -1576,8 +1630,6 @@ class OAuthManager:
                         )
                     else:
                         picture_url = "/user.png"
-                    username_claim = auth_manager_config.OAUTH_USERNAME_CLAIM
-
                     name = user_data.get(username_claim)
                     if not name:
                         log.warning("Username claim is missing, using email as name")

@@ -552,6 +552,88 @@ FEISHU_REDIRECT_URI = PersistentConfig(
     os.environ.get("FEISHU_REDIRECT_URI", ""),
 )
 
+SSO_CLIENT_ID = PersistentConfig(
+    "SSO_CLIENT_ID",
+    "oauth.sso.client_id",
+    os.environ.get("SSO_CLIENT_ID", ""),
+)
+
+SSO_CLIENT_SECRET = PersistentConfig(
+    "SSO_CLIENT_SECRET",
+    "oauth.sso.client_secret",
+    os.environ.get("SSO_CLIENT_SECRET", ""),
+)
+
+SSO_AUTHORIZE_URL = PersistentConfig(
+    "SSO_AUTHORIZE_URL",
+    "oauth.sso.authorize_url",
+    os.environ.get("SSO_AUTHORIZE_URL", ""),
+)
+
+SSO_ACCESS_TOKEN_URL = PersistentConfig(
+    "SSO_ACCESS_TOKEN_URL",
+    "oauth.sso.access_token_url",
+    os.environ.get("SSO_ACCESS_TOKEN_URL", ""),
+)
+
+SSO_USERINFO_URL = PersistentConfig(
+    "SSO_USERINFO_URL",
+    "oauth.sso.userinfo_url",
+    os.environ.get("SSO_USERINFO_URL", ""),
+)
+
+SSO_LOGOUT_URL = PersistentConfig(
+    "SSO_LOGOUT_URL",
+    "oauth.sso.logout_url",
+    os.environ.get("SSO_LOGOUT_URL", ""),
+)
+
+SSO_SCOPE = PersistentConfig(
+    "SSO_SCOPE",
+    "oauth.sso.scope",
+    os.environ.get("SSO_SCOPE", "base.profile"),
+)
+
+SSO_REDIRECT_URI = PersistentConfig(
+    "SSO_REDIRECT_URI",
+    "oauth.sso.redirect_uri",
+    os.environ.get("SSO_REDIRECT_URI", ""),
+)
+
+SSO_PROVIDER_NAME = PersistentConfig(
+    "SSO_PROVIDER_NAME",
+    "oauth.sso.provider_name",
+    os.environ.get("SSO_PROVIDER_NAME", "SSO"),
+)
+
+SSO_SUB_CLAIMS = PersistentConfig(
+    "SSO_SUB_CLAIMS",
+    "oauth.sso.sub_claims",
+    [
+        claim.strip()
+        for claim in os.environ.get("SSO_SUB_CLAIMS", "uid,email,uuid").split(",")
+        if claim.strip()
+    ],
+)
+
+SSO_EMAIL_CLAIM = PersistentConfig(
+    "SSO_EMAIL_CLAIM",
+    "oauth.sso.email_claim",
+    os.environ.get("SSO_EMAIL_CLAIM", "email"),
+)
+
+SSO_USERNAME_CLAIM = PersistentConfig(
+    "SSO_USERNAME_CLAIM",
+    "oauth.sso.username_claim",
+    os.environ.get("SSO_USERNAME_CLAIM", "displayName"),
+)
+
+SSO_USERINFO_METHOD = PersistentConfig(
+    "SSO_USERINFO_METHOD",
+    "oauth.sso.userinfo_method",
+    os.environ.get("SSO_USERINFO_METHOD", "post_json"),
+)
+
 ENABLE_OAUTH_ROLE_MANAGEMENT = PersistentConfig(
     "ENABLE_OAUTH_ROLE_MANAGEMENT",
     "oauth.enable_role_mapping",
@@ -798,6 +880,46 @@ def load_oauth_providers():
         OAUTH_PROVIDERS["feishu"] = {
             "register": feishu_oauth_register,
             "sub_claim": "user_id",
+        }
+
+    if (
+        SSO_CLIENT_ID.value
+        and SSO_CLIENT_SECRET.value
+        and SSO_AUTHORIZE_URL.value
+        and SSO_ACCESS_TOKEN_URL.value
+        and SSO_USERINFO_URL.value
+    ):
+
+        def sso_oauth_register(oauth: OAuth):
+            client = oauth.register(
+                name="sso",
+                client_id=SSO_CLIENT_ID.value,
+                client_secret=SSO_CLIENT_SECRET.value,
+                access_token_url=SSO_ACCESS_TOKEN_URL.value,
+                authorize_url=SSO_AUTHORIZE_URL.value,
+                userinfo_endpoint=SSO_USERINFO_URL.value,
+                client_kwargs={
+                    "scope": SSO_SCOPE.value,
+                    **(
+                        {"timeout": int(OAUTH_TIMEOUT.value)}
+                        if OAUTH_TIMEOUT.value
+                        else {}
+                    ),
+                },
+                redirect_uri=SSO_REDIRECT_URI.value,
+            )
+            return client
+
+        OAUTH_PROVIDERS["sso"] = {
+            "name": SSO_PROVIDER_NAME.value,
+            "redirect_uri": SSO_REDIRECT_URI.value,
+            "register": sso_oauth_register,
+            "sub_claim": (SSO_SUB_CLAIMS.value or [None])[0],
+            "sub_claim_fallbacks": SSO_SUB_CLAIMS.value,
+            "email_claim": SSO_EMAIL_CLAIM.value,
+            "username_claim": SSO_USERNAME_CLAIM.value,
+            "userinfo_method": SSO_USERINFO_METHOD.value,
+            "userinfo_url": SSO_USERINFO_URL.value,
         }
 
     configured_providers = []

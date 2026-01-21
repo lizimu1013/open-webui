@@ -45,6 +45,8 @@ from open_webui.config import (
     ENABLE_OAUTH_SIGNUP,
     ENABLE_LDAP,
     ENABLE_PASSWORD_AUTH,
+    SSO_LOGOUT_URL,
+    SSO_CLIENT_ID,
 )
 from pydantic import BaseModel
 
@@ -844,6 +846,22 @@ async def signout(
         response.delete_cookie("oauth_session_id")
 
         session = OAuthSessions.get_session_by_id(oauth_session_id, db=db)
+        if session and session.provider == "sso" and SSO_LOGOUT_URL.value:
+            redirect_base = WEBUI_AUTH_SIGNOUT_REDIRECT_URL or (
+                str(request.app.state.config.WEBUI_URL or request.base_url).rstrip("/")
+                + "/auth"
+            )
+            params = urllib.parse.urlencode(
+                {"clientId": SSO_CLIENT_ID.value, "redirect": redirect_base}
+            )
+            return JSONResponse(
+                status_code=200,
+                content={
+                    "status": True,
+                    "redirect_url": f"{SSO_LOGOUT_URL.value}?{params}",
+                },
+                headers=response.headers,
+            )
         oauth_server_metadata_url = (
             request.app.state.oauth_manager.get_server_metadata_url(session.provider)
             if session
