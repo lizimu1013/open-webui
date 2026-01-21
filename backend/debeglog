@@ -1,0 +1,25 @@
+2026-01-21 03:37:39.261 | DEBUG    | httpcore._trace:atrace:87 - connect_tcp.started host='uniportal.huawei.com' port=443 local_address=None timeout=5.0 socket_options=None
+2026-01-21 03:37:39.300 | DEBUG    | httpcore._trace:atrace:87 - connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x7fe1c7b2aa90>
+2026-01-21 03:37:39.300 | DEBUG    | httpcore._trace:atrace:87 - start_tls.started ssl_context=<ssl.SSLContext object at 0x7fe1c85a6d50> server_hostname='uniportal.huawei.com' timeout=5.0
+2026-01-21 03:37:39.368 | DEBUG    | httpcore._trace:atrace:87 - start_tls.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x7fe1c7b0efd0>
+2026-01-21 03:37:39.369 | DEBUG    | httpcore._trace:atrace:87 - send_request_headers.started request=<Request [b'POST']>
+2026-01-21 03:37:39.369 | DEBUG    | httpcore._trace:atrace:87 - send_request_headers.complete
+2026-01-21 03:37:39.369 | DEBUG    | httpcore._trace:atrace:87 - send_request_body.started request=<Request [b'POST']>
+2026-01-21 03:37:39.369 | DEBUG    | httpcore._trace:atrace:87 - send_request_body.complete
+2026-01-21 03:37:39.369 | DEBUG    | httpcore._trace:atrace:87 - receive_response_headers.started request=<Request [b'POST']>
+2026-01-21 03:37:39.413 | DEBUG    | httpcore._trace:atrace:87 - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'', [(b'Date', b'Wed, 21 Jan 2026 03:37:41 GMT'), (b'Content-Type', b'application/json;charset=UTF-8'), (b'Content-Length', b'64'), (b'Connection', b'keep-alive'), (b'Keep-Alive', b'timeout=60'), (b'Access-Control-Expose-Headers', b'x-login-url,x-login-service,x-login-appid'), (b'x-login-url', b'https://login.huawei.com/login1/'), (b'x-login-appid', b'x_app_id=com.huawei.paas.idaas.authentication'), (b'X-Server-Process-Time', b'0.0069'), (b'X-Upstream-Process-Time', b'0.0039'), (b'X-ALB-SERVER', b'ALB')])
+2026-01-21 03:37:39.414 | INFO     | httpx._client:_send_single_request:1740 - HTTP Request: POST https://uniportal.huawei.com/saaslogin1/oauth2/accesstoken "HTTP/1.1 200 "
+2026-01-21 03:37:39.414 | DEBUG    | httpcore._trace:atrace:87 - receive_response_body.started request=<Request [b'POST']>
+2026-01-21 03:37:39.414 | DEBUG    | httpcore._trace:atrace:87 - receive_response_body.complete
+2026-01-21 03:37:39.415 | DEBUG    | httpcore._trace:atrace:87 - response_closed.started
+2026-01-21 03:37:39.415 | DEBUG    | httpcore._trace:atrace:87 - response_closed.complete
+2026-01-21 03:37:39.415 | DEBUG    | httpcore._trace:atrace:87 - close.started
+2026-01-21 03:37:39.415 | DEBUG    | httpcore._trace:atrace:87 - close.complete
+2026-01-21 03:37:39.658 | ERROR    | open_webui.utils.oauth:handle_callback:1688 - Error during OAuth process: unsupported_token_type: Unsupported token_type: 'access_token'
+2026-01-21 03:37:39.659 | INFO     | uvicorn.protocols.http.httptools_impl:send:483 - 127.0.0.1:36442 - "GET /oauth/sso/login/callback?code=313031301296F3ED6F53B9A3CFD6C9EEC2A56312D18D8021C83E7DD516FBD70587FAD17F6AAB7E70E6A2A7E2AD6981481FA9FAEEC9EF1DCD48ADACFD17EF596ADF0245E50403B477D11D9F82B6D07FAADAC5A7DCCE905CC53494513202516F709E0C3F4F71E95E84DEA8B6053DAC9AA1429011188E66CA0C5BC7961B85FD2D7F39D42330&state=56IUC58r7Cm95FzMQVWTOo4NJaAje6 HTTP/1.1" 307
+2026-01-21 03:37:39.705 | INFO     | uvicorn.protocols.http.httptools_impl:send:483 - 127.0.0.1:36462 - "GET /static/loader.js HTTP/1.1" 304
+2026-01-21 03:37:39.706 | INFO     | uvicorn.protocols.http.httptools_impl:send:483 - 127.0.0.1:36494 - "GET /static/splash.png HTTP/1.1" 304
+2026-01-21 03:37:39.706 | INFO     | uvicorn.protocols.http.httptools_impl:send:483 - 127.0.0.1:36478 - "GET /static/custom.css HTTP/1.1" 304
+2026-01-21 03:37:39.792 | INFO     | uvicorn.protocols.http.httptools_impl:send:483 - 127.0.0.1:36496 - "GET /api/config HTTP/1.1" 200
+2026-01-21 03:37:39.800 | INFO     | uvicorn.protocols.http.httptools_impl:send:483 - 127.0.0.1:36512 - "GET /static/favicon.png HTTP/1.1" 304
+2026-01-21 03:37:39.812 | INFO     | uvicorn.protocols.http.httptools_impl:send:483 - 127.0.0.1:36526 - "GET /static/favicon.png HTTP/1.1" 304
