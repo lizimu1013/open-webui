@@ -1498,6 +1498,77 @@ class OAuthManager:
                     return list(value.keys())
                 return [type(value).__name__]
 
+            async def _sso_token_exchange():
+                code = request.query_params.get("code")
+                if not code:
+                    return None
+                redirect_uri = provider_config.get("redirect_uri") or str(
+                    request.url_for("oauth_login_callback", provider=provider)
+                )
+                payload = {
+                    "client_id": provider_config.get("client_id")
+                    or getattr(client, "client_id", None),
+                    "client_secret": provider_config.get("client_secret")
+                    or getattr(client, "client_secret", None),
+                    "redirect_uri": redirect_uri,
+                    "grant_type": "authorization_code",
+                    "code": code,
+                }
+                payload = {k: v for k, v in payload.items() if v is not None}
+                log.warning(
+                    "SSO token exchange payload: client_id=%s redirect_uri=%s grant_type=%s",
+                    payload.get("client_id"),
+                    payload.get("redirect_uri"),
+                    payload.get("grant_type"),
+                )
+                token = await _post_json(
+                    provider_config.get("access_token_url"),
+                    payload,
+                )
+                if isinstance(token, dict):
+                    log.warning(
+                        "SSO token exchange response keys=%s errorDesc=%s errorCode=%s",
+                        _data_keys(token),
+                        token.get("errorDesc"),
+                        token.get("errorCode"),
+                    )
+                    if not token.get("access_token"):
+                        log.debug("Retrying SSO token exchange as form-encoded")
+                        token = await _post_form(
+                            provider_config.get("access_token_url"),
+                            payload,
+                        )
+                if (
+                    isinstance(token, dict)
+                    and token.get("errorDesc", "").lower().find("client_id") >= 0
+                ):
+                    alt_payload = {
+                        "clientId": payload.get("client_id"),
+                        "clientSecret": payload.get("client_secret"),
+                        "redirect_uri": payload.get("redirect_uri"),
+                        "grant_type": payload.get("grant_type"),
+                        "code": payload.get("code"),
+                    }
+                    alt_payload = {
+                        k: v for k, v in alt_payload.items() if v is not None
+                    }
+                    log.debug(
+                        "Retrying SSO token exchange with clientId/clientSecret keys"
+                    )
+                    token = await _post_json(
+                        provider_config.get("access_token_url"),
+                        alt_payload,
+                    )
+                    if isinstance(token, dict) and not token.get("access_token"):
+                        log.debug(
+                            "Retrying SSO token exchange as form-encoded with clientId/clientSecret keys"
+                        )
+                        token = await _post_form(
+                            provider_config.get("access_token_url"),
+                            alt_payload,
+                        )
+                return token
+
             auth_params = {}
 
             if client:
@@ -1507,84 +1578,30 @@ class OAuthManager:
                 ):
                     auth_params["client_id"] = client.client_id
 
+            auth_error = None
             try:
                 token = await client.authorize_access_token(request, **auth_params)
             except Exception as e:
+                auth_error = e
                 token = None
-                if provider == "sso":
-                    code = request.query_params.get("code")
-                    if code:
-                        redirect_uri = provider_config.get("redirect_uri") or str(
-                            request.url_for("oauth_login_callback", provider=provider)
-                        )
-                        payload = {
-                            "client_id": provider_config.get("client_id")
-                            or getattr(client, "client_id", None),
-                            "client_secret": provider_config.get("client_secret")
-                            or getattr(client, "client_secret", None),
-                            "redirect_uri": redirect_uri,
-                            "grant_type": "authorization_code",
-                            "code": code,
-                        }
-                        payload = {k: v for k, v in payload.items() if v is not None}
-                        log.warning(
-                            "SSO token exchange payload: client_id=%s redirect_uri=%s grant_type=%s",
-                            payload.get("client_id"),
-                            payload.get("redirect_uri"),
-                            payload.get("grant_type"),
-                        )
-                        token = await _post_json(
-                            provider_config.get("access_token_url"),
-                            payload,
-                        )
-                        if isinstance(token, dict):
-                            log.warning(
-                                "SSO token exchange response keys=%s errorDesc=%s errorCode=%s",
-                                _data_keys(token),
-                                token.get("errorDesc"),
-                                token.get("errorCode"),
-                            )
-                            if not token.get("access_token"):
-                                log.debug("Retrying SSO token exchange as form-encoded")
-                                token = await _post_form(
-                                    provider_config.get("access_token_url"),
-                                    payload,
-                                )
-                        if isinstance(token, dict) and token.get("errorDesc", "").lower().find("client_id") >= 0:
-                            alt_payload = {
-                                "clientId": payload.get("client_id"),
-                                "clientSecret": payload.get("client_secret"),
-                                "redirect_uri": payload.get("redirect_uri"),
-                                "grant_type": payload.get("grant_type"),
-                                "code": payload.get("code"),
-                            }
-                            alt_payload = {
-                                k: v for k, v in alt_payload.items() if v is not None
-                            }
-                            log.debug(
-                                "Retrying SSO token exchange with clientId/clientSecret keys"
-                            )
-                            token = await _post_json(
-                                provider_config.get("access_token_url"),
-                                alt_payload,
-                            )
-                            if isinstance(token, dict) and not token.get("access_token"):
-                                log.debug(
-                                    "Retrying SSO token exchange as form-encoded with clientId/clientSecret keys"
-                                )
-                                token = await _post_form(
-                                    provider_config.get("access_token_url"),
-                                    alt_payload,
-                                )
-                if not token:
-                    detailed_error = _build_oauth_callback_error_message(e)
-                    log.warning(
-                        "OAuth callback error during authorize_access_token for provider %s: %s",
-                        provider,
-                        detailed_error,
-                        exc_info=True,
-                    )
-                    raise HTTPException(400, detail=ERROR_MESSAGES.INVALID_CRED)
+
+            if provider == "sso" and (
+                not token
+                or (isinstance(token, dict) and not token.get("access_token"))
+            ):
+                token = await _sso_token_exchange()
+
+            if not token:
+                detailed_error = _build_oauth_callback_error_message(
+                    auth_error or Exception("Token exchange failed")
+                )
+                log.warning(
+                    "OAuth callback error during authorize_access_token for provider %s: %s",
+                    provider,
+                    detailed_error,
+                    exc_info=True,
+                )
+                raise HTTPException(400, detail=ERROR_MESSAGES.INVALID_CRED)
 
             if isinstance(token, dict):
                 if not token.get("access_token"):
