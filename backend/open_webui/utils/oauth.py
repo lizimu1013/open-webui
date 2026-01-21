@@ -1465,6 +1465,11 @@ class OAuthManager:
                 )
                 raise HTTPException(400, detail=ERROR_MESSAGES.INVALID_CRED)
 
+            if isinstance(token, dict):
+                raw_token_type = token.get("token_type")
+                if raw_token_type and raw_token_type.lower() == "access_token":
+                    token["token_type"] = "Bearer"
+
             # Try to get userinfo from the token first, some providers include it there
             user_data: UserInfo = token.get("userinfo")
             email_claim = provider_config.get("email_claim") or auth_manager_config.OAUTH_EMAIL_CLAIM
