@@ -933,6 +933,9 @@ def load_oauth_providers():
             "username_claim": SSO_USERNAME_CLAIM.value,
             "userinfo_method": SSO_USERINFO_METHOD.value,
             "userinfo_url": SSO_USERINFO_URL.value,
+            "access_token_url": SSO_ACCESS_TOKEN_URL.value,
+            "client_id": SSO_CLIENT_ID.value,
+            "client_secret": SSO_CLIENT_SECRET.value,
         }
 
     configured_providers = []

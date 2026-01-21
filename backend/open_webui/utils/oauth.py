@@ -226,9 +226,17 @@ async def _post_json(url: str, payload: dict, headers: Optional[dict] = None):
                     status_code=resp.status,
                     detail=f"Upstream provider returned {resp.status}: {error_text}",
                 )
+            text = await resp.text()
+            if not text:
+                return None
             try:
-                return await resp.json()
+                return json.loads(text)
             except Exception:
+                if "=" in text:
+                    try:
+                        return dict(urllib.parse.parse_qsl(text))
+                    except Exception:
+                        return None
                 return None
 
 
@@ -1456,18 +1464,39 @@ class OAuthManager:
             try:
                 token = await client.authorize_access_token(request, **auth_params)
             except Exception as e:
-                detailed_error = _build_oauth_callback_error_message(e)
-                log.warning(
-                    "OAuth callback error during authorize_access_token for provider %s: %s",
-                    provider,
-                    detailed_error,
-                    exc_info=True,
-                )
-                raise HTTPException(400, detail=ERROR_MESSAGES.INVALID_CRED)
+                token = None
+                if provider == "sso":
+                    code = request.query_params.get("code")
+                    if code:
+                        payload = {
+                            "client_id": provider_config.get("client_id")
+                            or getattr(client, "client_id", None),
+                            "client_secret": provider_config.get("client_secret")
+                            or getattr(client, "client_secret", None),
+                            "redirect_uri": provider_config.get("redirect_uri"),
+                            "grant_type": "authorization_code",
+                            "code": code,
+                        }
+                        payload = {k: v for k, v in payload.items() if v is not None}
+                        token = await _post_json(
+                            provider_config.get("access_token_url"),
+                            payload,
+                        )
+                if not token:
+                    detailed_error = _build_oauth_callback_error_message(e)
+                    log.warning(
+                        "OAuth callback error during authorize_access_token for provider %s: %s",
+                        provider,
+                        detailed_error,
+                        exc_info=True,
+                    )
+                    raise HTTPException(400, detail=ERROR_MESSAGES.INVALID_CRED)
 
             if isinstance(token, dict):
                 raw_token_type = token.get("token_type")
                 if raw_token_type and raw_token_type.lower() == "access_token":
+                    token["token_type"] = "Bearer"
+                elif not raw_token_type and token.get("access_token"):
                     token["token_type"] = "Bearer"
 
             # Try to get userinfo from the token first, some providers include it there
