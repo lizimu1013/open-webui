@@ -1451,6 +1451,10 @@ class OAuthManager:
         provider_config = _get_provider_config(provider)
         try:
             client = self.get_client(provider)
+            def _data_keys(value):
+                if isinstance(value, dict):
+                    return list(value.keys())
+                return [type(value).__name__]
 
             auth_params = {}
 
@@ -1530,6 +1534,11 @@ class OAuthManager:
                     token["token_type"] = "Bearer"
                 elif not raw_token_type and token.get("access_token"):
                     token["token_type"] = "Bearer"
+                log.debug(
+                    "OAuth token received (provider=%s) keys=%s",
+                    provider,
+                    _data_keys(token),
+                )
 
             # Try to get userinfo from the token first, some providers include it there
             user_data: UserInfo = token.get("userinfo")
@@ -1567,6 +1576,11 @@ class OAuthManager:
             ):
                 user_data = user_data["data"]
             log.debug("OAuth callback userinfo (provider=%s): %s", provider, user_data)
+            log.debug(
+                "OAuth callback userinfo keys (provider=%s): %s",
+                provider,
+                _data_keys(user_data),
+            )
             if not user_data:
                 log.warning(f"OAuth callback failed, user data is missing: {token}")
                 raise HTTPException(400, detail=ERROR_MESSAGES.INVALID_CRED)
@@ -1595,6 +1609,12 @@ class OAuthManager:
                 "OAuth callback email claim %s -> %s (provider=%s)",
                 email_claim,
                 email,
+                provider,
+            )
+            log.debug(
+                "OAuth callback username claim %s -> %s (provider=%s)",
+                username_claim,
+                user_data.get(username_claim),
                 provider,
             )
             # We currently mandate that email addresses are provided
@@ -1641,7 +1661,12 @@ class OAuthManager:
                 elif ENABLE_OAUTH_EMAIL_FALLBACK:
                     email = f"{provider}@{sub}.local"
                 else:
-                    log.warning(f"OAuth callback failed, email is missing: {user_data}")
+                    log.warning(
+                        "OAuth callback failed, email is missing (provider=%s, claim=%s, keys=%s)",
+                        provider,
+                        email_claim,
+                        _data_keys(user_data),
+                    )
                     raise HTTPException(400, detail=ERROR_MESSAGES.INVALID_CRED)
 
             email = email.lower()
