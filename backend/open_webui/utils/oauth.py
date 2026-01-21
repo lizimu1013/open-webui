@@ -1481,7 +1481,7 @@ class OAuthManager:
                             "code": code,
                         }
                         payload = {k: v for k, v in payload.items() if v is not None}
-                        log.debug(
+                        log.warning(
                             "SSO token exchange payload: client_id=%s redirect_uri=%s grant_type=%s",
                             payload.get("client_id"),
                             payload.get("redirect_uri"),
