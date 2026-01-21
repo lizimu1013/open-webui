@@ -23,3 +23,27 @@
 2026-01-21 03:37:39.792 | INFO     | uvicorn.protocols.http.httptools_impl:send:483 - 127.0.0.1:36496 - "GET /api/config HTTP/1.1" 200
 2026-01-21 03:37:39.800 | INFO     | uvicorn.protocols.http.httptools_impl:send:483 - 127.0.0.1:36512 - "GET /static/favicon.png HTTP/1.1" 304
 2026-01-21 03:37:39.812 | INFO     | uvicorn.protocols.http.httptools_impl:send:483 - 127.0.0.1:36526 - "GET /static/favicon.png HTTP/1.1" 304
+
+
+
+2026-01-21 03:45:31.024 | INFO     | uvicorn.protocols.http.httptools_impl:send:483 - 127.0.0.1:36440 - "GET /oauth/sso/login HTTP/1.1" 302
+2026-01-21 03:45:31.471 | DEBUG    | httpcore._trace:atrace:87 - connect_tcp.started host='uniportal.huawei.com' port=443 local_address=None timeout=5.0 socket_options=None
+2026-01-21 03:45:31.509 | DEBUG    | httpcore._trace:atrace:87 - connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x7cc6e83e5fd0>
+2026-01-21 03:45:31.509 | DEBUG    | httpcore._trace:atrace:87 - start_tls.started ssl_context=<ssl.SSLContext object at 0x7cc6e83d8cb0> server_hostname='uniportal.huawei.com' timeout=5.0
+2026-01-21 03:45:31.571 | DEBUG    | httpcore._trace:atrace:87 - start_tls.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x7cc6e97f9090>
+2026-01-21 03:45:31.572 | DEBUG    | httpcore._trace:atrace:87 - send_request_headers.started request=<Request [b'POST']>
+2026-01-21 03:45:31.572 | DEBUG    | httpcore._trace:atrace:87 - send_request_headers.complete
+2026-01-21 03:45:31.572 | DEBUG    | httpcore._trace:atrace:87 - send_request_body.started request=<Request [b'POST']>
+2026-01-21 03:45:31.572 | DEBUG    | httpcore._trace:atrace:87 - send_request_body.complete
+2026-01-21 03:45:31.572 | DEBUG    | httpcore._trace:atrace:87 - receive_response_headers.started request=<Request [b'POST']>
+2026-01-21 03:45:31.605 | DEBUG    | httpcore._trace:atrace:87 - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'', [(b'Date', b'Wed, 21 Jan 2026 03:45:33 GMT'), (b'Content-Type', b'application/json;charset=UTF-8'), (b'Content-Length', b'64'), (b'Connection', b'keep-alive'), (b'Keep-Alive', b'timeout=60'), (b'Access-Control-Expose-Headers', b'x-login-url,x-login-service,x-login-appid'), (b'x-login-url', b'https://login.huawei.com/login1/'), (b'x-login-appid', b'x_app_id=com.huawei.paas.idaas.authentication'), (b'X-Server-Process-Time', b'0.0039'), (b'X-Upstream-Process-Time', b'0.003'), (b'X-ALB-SERVER', b'ALB')])
+2026-01-21 03:45:31.606 | INFO     | httpx._client:_send_single_request:1740 - HTTP Request: POST https://uniportal.huawei.com/saaslogin1/oauth2/accesstoken "HTTP/1.1 200 "
+2026-01-21 03:45:31.606 | DEBUG    | httpcore._trace:atrace:87 - receive_response_body.started request=<Request [b'POST']>
+2026-01-21 03:45:31.606 | DEBUG    | httpcore._trace:atrace:87 - receive_response_body.complete
+2026-01-21 03:45:31.606 | DEBUG    | httpcore._trace:atrace:87 - response_closed.started
+2026-01-21 03:45:31.606 | DEBUG    | httpcore._trace:atrace:87 - response_closed.complete
+2026-01-21 03:45:31.607 | DEBUG    | httpcore._trace:atrace:87 - close.started
+2026-01-21 03:45:31.607 | DEBUG    | httpcore._trace:atrace:87 - close.complete
+2026-01-21 03:45:31.803 | ERROR    | open_webui.utils.oauth:handle_callback:1693 - Error during OAuth process: unsupported_token_type: Unsupported token_type: 'access_token'
+2026-01-21 03:45:31.804 | INFO     | uvicorn.protocols.http.httptools_impl:send:483 - 127.0.0.1:36456 - "GET /oauth/sso/login/callback?code=31303130A621C5AA1528B5A38AC29FDA69DE1AB36DFEDD47790AE52136249C0A909A58115DE6B8528A7E75909CE7C9FAF3D0B1726CF716226A49447A859F243B7CF1DD71A21198FB386A8E6217086C78F7C662AF22B2DB2D8D3A21583E3FBB8E43141F175A9097CAF234ABD4C322269D2927AB3CB8AB5973B00FFE8CE70EBB5BA4D60C4E&state=2VaGtsz5VvOgjIn7pyvMkO5p5WeG6C HTTP/1.1" 307
+2026-01-21 03:45:31.816 | INFO     | uvicorn.protocols.http.httptools_impl:send:483 - 127.0.0.1:36462 - "GET /auth?error=[ERROR:%20Error%20during%20OAuth%20process] HTTP/1.1" 200
