@@ -229,6 +229,15 @@ async def _post_json(url: str, payload: dict, headers: Optional[dict] = None):
             text = await resp.text()
             if not text:
                 return None
+            try:
+                return json.loads(text)
+            except Exception:
+                if "=" in text:
+                    try:
+                        return dict(urllib.parse.parse_qsl(text))
+                    except Exception:
+                        return None
+                return None
 
 
 async def _post_form(url: str, payload: dict, headers: Optional[dict] = None):
@@ -1614,10 +1623,14 @@ class OAuthManager:
                             {k: token.get(k) for k in token.keys() if k not in {"refresh_token", "id_token"}},
                         )
                         raise HTTPException(400, detail=ERROR_MESSAGES.INVALID_CRED)
+                    scope = token.get("scope")
+                    if provider == "sso" and not scope:
+                        scope = "base.profile"
                     payload = {
-                        "client_id": getattr(client, "client_id", None),
+                        "client_id": provider_config.get("client_id")
+                        or getattr(client, "client_id", None),
                         "access_token": token.get("access_token"),
-                        "scope": token.get("scope"),
+                        "scope": scope,
                     }
                     payload = {k: v for k, v in payload.items() if v}
                     user_data = await _post_json(userinfo_url, payload)
