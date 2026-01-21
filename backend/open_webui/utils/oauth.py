@@ -1566,6 +1566,7 @@ class OAuthManager:
                 and "data" in user_data
             ):
                 user_data = user_data["data"]
+            log.debug("OAuth callback userinfo (provider=%s): %s", provider, user_data)
             if not user_data:
                 log.warning(f"OAuth callback failed, user data is missing: {token}")
                 raise HTTPException(400, detail=ERROR_MESSAGES.INVALID_CRED)
@@ -1590,6 +1591,12 @@ class OAuthManager:
 
             # Email extraction
             email = user_data.get(email_claim, "")
+            log.debug(
+                "OAuth callback email claim %s -> %s (provider=%s)",
+                email_claim,
+                email,
+                provider,
+            )
             # We currently mandate that email addresses are provided
             if not email:
                 # If the provider is GitHub,and public email is not provided, we can use the access token to fetch the user's email
