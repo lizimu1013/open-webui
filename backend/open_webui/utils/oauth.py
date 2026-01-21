@@ -210,6 +210,18 @@ def _pick_first_claim(user_data: dict, claims: list[str]) -> Optional[str]:
     return None
 
 
+def _normalize_sso_name(value: Optional[str]) -> Optional[str]:
+    if not value or not isinstance(value, str):
+        return None
+    match = re.search(r"cn=([^,;\uFF0C|]+)", value, re.IGNORECASE)
+    if match:
+        cn = match.group(1).strip()
+        if cn:
+            cn = re.split(r"\s*en=", cn, flags=re.IGNORECASE)[0].strip()
+            return cn or None
+    return value.strip() or None
+
+
 async def _post_json(url: str, payload: dict, headers: Optional[dict] = None):
     if not url:
         return None
@@ -1783,6 +1795,18 @@ class OAuthManager:
                     # Update the user object in memory as well,
                     # to avoid problems with the ENABLE_OAUTH_GROUP_MANAGEMENT check below
                     user.role = determined_role
+                if provider == "sso":
+                    normalized_name = _normalize_sso_name(
+                        user_data.get(username_claim)
+                    )
+                    if normalized_name and (
+                        not user.name
+                        or re.search(r"cn=", user.name, re.IGNORECASE)
+                    ):
+                        Users.update_user_by_id(
+                            user.id, {"name": normalized_name}, db=db
+                        )
+                        user.name = normalized_name
                 # Update profile picture if enabled and different from current
                 if auth_manager_config.OAUTH_UPDATE_PICTURE_ON_LOGIN:
                     picture_claim = provider_config.get("picture_claim") or auth_manager_config.OAUTH_PICTURE_CLAIM
@@ -1819,6 +1843,8 @@ class OAuthManager:
                     else:
                         picture_url = "/user.png"
                     name = user_data.get(username_claim)
+                    if provider == "sso":
+                        name = _normalize_sso_name(name)
                     if not name:
                         log.warning("Username claim is missing, using email as name")
                         name = email
