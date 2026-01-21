@@ -229,6 +229,39 @@ async def _post_json(url: str, payload: dict, headers: Optional[dict] = None):
             text = await resp.text()
             if not text:
                 return None
+
+
+async def _post_form(url: str, payload: dict, headers: Optional[dict] = None):
+    if not url:
+        return None
+    form_headers = {"Content-Type": "application/x-www-form-urlencoded"}
+    if headers:
+        form_headers.update(headers)
+    async with aiohttp.ClientSession(trust_env=True) as session:
+        async with session.post(
+            url,
+            data=payload,
+            headers=form_headers,
+            ssl=AIOHTTP_CLIENT_SESSION_SSL,
+        ) as resp:
+            if resp.status >= 400:
+                error_text = await resp.text()
+                raise HTTPException(
+                    status_code=resp.status,
+                    detail=f"Upstream provider returned {resp.status}: {error_text}",
+                )
+            text = await resp.text()
+            if not text:
+                return None
+            try:
+                return json.loads(text)
+            except Exception:
+                if "=" in text:
+                    try:
+                        return dict(urllib.parse.parse_qsl(text))
+                    except Exception:
+                        return None
+                return None
             try:
                 return json.loads(text)
             except Exception:
@@ -1495,6 +1528,19 @@ class OAuthManager:
                             provider_config.get("access_token_url"),
                             payload,
                         )
+                        if isinstance(token, dict):
+                            log.warning(
+                                "SSO token exchange response keys=%s errorDesc=%s errorCode=%s",
+                                _data_keys(token),
+                                token.get("errorDesc"),
+                                token.get("errorCode"),
+                            )
+                            if not token.get("access_token"):
+                                log.debug("Retrying SSO token exchange as form-encoded")
+                                token = await _post_form(
+                                    provider_config.get("access_token_url"),
+                                    payload,
+                                )
                         if isinstance(token, dict) and token.get("errorDesc", "").lower().find("client_id") >= 0:
                             alt_payload = {
                                 "clientId": payload.get("client_id"),
@@ -1513,6 +1559,14 @@ class OAuthManager:
                                 provider_config.get("access_token_url"),
                                 alt_payload,
                             )
+                            if isinstance(token, dict) and not token.get("access_token"):
+                                log.debug(
+                                    "Retrying SSO token exchange as form-encoded with clientId/clientSecret keys"
+                                )
+                                token = await _post_form(
+                                    provider_config.get("access_token_url"),
+                                    alt_payload,
+                                )
                 if not token:
                     detailed_error = _build_oauth_callback_error_message(e)
                     log.warning(
