@@ -47,3 +47,22 @@
 2026-01-21 03:45:31.803 | ERROR    | open_webui.utils.oauth:handle_callback:1693 - Error during OAuth process: unsupported_token_type: Unsupported token_type: 'access_token'
 2026-01-21 03:45:31.804 | INFO     | uvicorn.protocols.http.httptools_impl:send:483 - 127.0.0.1:36456 - "GET /oauth/sso/login/callback?code=31303130A621C5AA1528B5A38AC29FDA69DE1AB36DFEDD47790AE52136249C0A909A58115DE6B8528A7E75909CE7C9FAF3D0B1726CF716226A49447A859F243B7CF1DD71A21198FB386A8E6217086C78F7C662AF22B2DB2D8D3A21583E3FBB8E43141F175A9097CAF234ABD4C322269D2927AB3CB8AB5973B00FFE8CE70EBB5BA4D60C4E&state=2VaGtsz5VvOgjIn7pyvMkO5p5WeG6C HTTP/1.1" 307
 2026-01-21 03:45:31.816 | INFO     | uvicorn.protocols.http.httptools_impl:send:483 - 127.0.0.1:36462 - "GET /auth?error=[ERROR:%20Error%20during%20OAuth%20process] HTTP/1.1" 200
+
+
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1147, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 690, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 940, in exec_module
+  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+  File "/data/l00826434/open-webui/backend/open_webui/main.py", line 663, in <module>
+    oauth_manager = OAuthManager(app)
+                    ^^^^^^^^^^^^^^^^^
+  File "/data/l00826434/open-webui/backend/open_webui/utils/oauth.py", line 981, in __init__
+    client = provider_config["register"](self.oauth)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/l00826434/open-webui/backend/open_webui/config.py", line 923, in sso_oauth_register
+    client.register_compliance_hook("access_token_response", _sso_token_type_fix)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
