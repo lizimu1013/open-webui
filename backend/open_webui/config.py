@@ -909,18 +909,6 @@ def load_oauth_providers():
                 redirect_uri=SSO_REDIRECT_URI.value,
             )
 
-            def _sso_token_type_fix(client, resp):
-                try:
-                    data = resp.json()
-                except Exception:
-                    return resp
-                token_type = data.get("token_type")
-                if isinstance(token_type, str) and token_type.lower() == "access_token":
-                    data["token_type"] = "Bearer"
-                    resp._content = json.dumps(data).encode("utf-8")
-                return resp
-
-            client.register_compliance_hook("access_token_response", _sso_token_type_fix)
             return client
 
         OAUTH_PROVIDERS["sso"] = {
