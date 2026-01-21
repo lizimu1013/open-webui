@@ -48,21 +48,33 @@
 2026-01-21 03:45:31.804 | INFO     | uvicorn.protocols.http.httptools_impl:send:483 - 127.0.0.1:36456 - "GET /oauth/sso/login/callback?code=31303130A621C5AA1528B5A38AC29FDA69DE1AB36DFEDD47790AE52136249C0A909A58115DE6B8528A7E75909CE7C9FAF3D0B1726CF716226A49447A859F243B7CF1DD71A21198FB386A8E6217086C78F7C662AF22B2DB2D8D3A21583E3FBB8E43141F175A9097CAF234ABD4C322269D2927AB3CB8AB5973B00FFE8CE70EBB5BA4D60C4E&state=2VaGtsz5VvOgjIn7pyvMkO5p5WeG6C HTTP/1.1" 307
 2026-01-21 03:45:31.816 | INFO     | uvicorn.protocols.http.httptools_impl:send:483 - 127.0.0.1:36462 - "GET /auth?error=[ERROR:%20Error%20during%20OAuth%20process] HTTP/1.1" 200
 
+2026-01-21 04:08:35.826 | INFO     | uvicorn.protocols.http.httptools_impl:send:483 - 127.0.0.1:42480 - "GET /static/favicon.png HTTP/1.1" 304
+2026-01-21 04:08:38.987 | INFO     | uvicorn.protocols.http.httptools_impl:send:483 - 127.0.0.1:42304 - "GET /_app/version.json HTTP/1.1" 200
+2026-01-21 04:08:41.640 | INFO     | uvicorn.protocols.http.httptools_impl:send:483 - 127.0.0.1:42318 - "GET /oauth/sso/login HTTP/1.1" 302
+2026-01-21 04:08:41.988 | DEBUG    | httpcore._trace:atrace:87 - connect_tcp.started host='uniportal.huawei.com' port=443 local_address=None timeout=5.0 socket_options=None
+2026-01-21 04:08:42.024 | DEBUG    | httpcore._trace:atrace:87 - connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x7b74ff7fcf90>
+2026-01-21 04:08:42.024 | DEBUG    | httpcore._trace:atrace:87 - start_tls.started ssl_context=<ssl.SSLContext object at 0x7b74fedc1250> server_hostname='uniportal.huawei.com' timeout=5.0
+2026-01-21 04:08:42.090 | DEBUG    | httpcore._trace:atrace:87 - start_tls.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x7b74ff786550>
+2026-01-21 04:08:42.090 | DEBUG    | httpcore._trace:atrace:87 - send_request_headers.started request=<Request [b'POST']>
+2026-01-21 04:08:42.091 | DEBUG    | httpcore._trace:atrace:87 - send_request_headers.complete
+2026-01-21 04:08:42.091 | DEBUG    | httpcore._trace:atrace:87 - send_request_body.started request=<Request [b'POST']>
+2026-01-21 04:08:42.091 | DEBUG    | httpcore._trace:atrace:87 - send_request_body.complete
+2026-01-21 04:08:42.091 | DEBUG    | httpcore._trace:atrace:87 - receive_response_headers.started request=<Request [b'POST']>
+2026-01-21 04:08:42.127 | DEBUG    | httpcore._trace:atrace:87 - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'', [(b'Date', b'Wed, 21 Jan 2026 04:08:44 GMT'), (b'Content-Type', b'application/json;charset=UTF-8'), (b'Content-Length', b'64'), (b'Connection', b'keep-alive'), (b'Keep-Alive', b'timeout=60'), (b'Access-Control-Expose-Headers', b'x-login-url,x-login-service,x-login-appid'), (b'x-login-url', b'https://login.huawei.com/login1/'), (b'x-login-appid', b'x_app_id=com.huawei.paas.idaas.authentication'), (b'X-Server-Process-Time', b'0.005'), (b'X-Upstream-Process-Time', b'0.005'), (b'X-ALB-SERVER', b'ALB')])
+2026-01-21 04:08:42.127 | INFO     | httpx._client:_send_single_request:1740 - HTTP Request: POST https://uniportal.huawei.com/saaslogin1/oauth2/accesstoken "HTTP/1.1 200 "
+2026-01-21 04:08:42.127 | DEBUG    | httpcore._trace:atrace:87 - receive_response_body.started request=<Request [b'POST']>
+2026-01-21 04:08:42.127 | DEBUG    | httpcore._trace:atrace:87 - receive_response_body.complete
+2026-01-21 04:08:42.127 | DEBUG    | httpcore._trace:atrace:87 - response_closed.started
+2026-01-21 04:08:42.127 | DEBUG    | httpcore._trace:atrace:87 - response_closed.complete
+2026-01-21 04:08:42.128 | DEBUG    | httpcore._trace:atrace:87 - close.started
+2026-01-21 04:08:42.128 | DEBUG    | httpcore._trace:atrace:87 - close.complete
+2026-01-21 04:08:42.246 | WARNING  | open_webui.utils.oauth:handle_callback:1545 - OAuth callback failed, sub is missing: {'errorDesc': 'access_token Parameter error.', 'errorCode': 'E_10011'}
+2026-01-21 04:08:42.246 | ERROR    | open_webui.utils.oauth:handle_callback:1722 - Error during OAuth process: 400: The email or password provided is incorrect. Please check for typos and try logging in again.
+2026-01-21 04:08:42.246 | INFO     | uvicorn.protocols.http.httptools_impl:send:483 - 127.0.0.1:42322 - "GET /oauth/sso/login/callback?code=3130313056515E469C964FC29BA465EE74B7A2A10B8F2D5B161EE1EC50DDFA5F81F0CAC359A7936676CDEA67C77AA6B6FCEBC85BB3FF63186C3908A8368928608C2FEB84FDCA180ECF842074616B6C53C484201029AE5569F323F16FB0D46C0CB3283FB8B4DAC0EC0B66BBA3C31E1E96DC8A8A647A2C8317DBCB5551D19CC38E54122991&state=B5gQoSLmgSQ6x88Rqfd3U1DK1c381i HTTP/1.1" 307
+2026-01-21 04:08:42.296 | INFO     | uvicorn.protocols.http.httptools_impl:send:483 - 127.0.0.1:42346 - "GET /static/custom.css HTTP/1.1" 304
+2026-01-21 04:08:42.297 | INFO     | uvicorn.protocols.http.httptools_impl:send:483 - 127.0.0.1:42334 - "GET /static/loader.js HTTP/1.1" 304
+2026-01-21 04:08:42.300 | INFO     | uvicorn.protocols.http.httptools_impl:send:483 - 127.0.0.1:42360 - "GET /static/splash.png HTTP/1.1" 304
+2026-01-21 04:08:42.461 | INFO     | uvicorn.protocols.http.httptools_impl:send:483 - 127.0.0.1:42362 - "GET /api/config HTTP/1.1" 200
+2026-01-21 04:08:42.462 | INFO     | uvicorn.protocols.http.httptools_impl:send:483 - 127.0.0.1:42368 - "GET /static/favicon.png HTTP/1.1" 304
 
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
-  File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
-  File "<frozen importlib._bootstrap>", line 1147, in _find_and_load_unlocked
-  File "<frozen importlib._bootstrap>", line 690, in _load_unlocked
-  File "<frozen importlib._bootstrap_external>", line 940, in exec_module
-  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
-  File "/data/l00826434/open-webui/backend/open_webui/main.py", line 663, in <module>
-    oauth_manager = OAuthManager(app)
-                    ^^^^^^^^^^^^^^^^^
-  File "/data/l00826434/open-webui/backend/open_webui/utils/oauth.py", line 981, in __init__
-    client = provider_config["register"](self.oauth)
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/data/l00826434/open-webui/backend/open_webui/config.py", line 923, in sso_oauth_register
-    client.register_compliance_hook("access_token_response", _sso_token_type_fix)
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
+The email or password provided is incorrect. Please check for typos and try logging in again.
