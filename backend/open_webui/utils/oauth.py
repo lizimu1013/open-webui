@@ -1493,6 +1493,11 @@ class OAuthManager:
                     raise HTTPException(400, detail=ERROR_MESSAGES.INVALID_CRED)
 
             if isinstance(token, dict):
+                if not token.get("access_token"):
+                    for key in ("accessToken", "token", "access_token "):
+                        if token.get(key):
+                            token["access_token"] = token.get(key)
+                            break
                 raw_token_type = token.get("token_type")
                 if raw_token_type and raw_token_type.lower() == "access_token":
                     token["token_type"] = "Bearer"
@@ -1513,6 +1518,12 @@ class OAuthManager:
                     userinfo_url = provider_config.get("userinfo_url") or getattr(
                         client, "userinfo_endpoint", None
                     )
+                    if provider == "sso" and not token.get("access_token"):
+                        log.warning(
+                            "SSO token response missing access_token: %s",
+                            {k: token.get(k) for k in token.keys() if k not in {"refresh_token", "id_token"}},
+                        )
+                        raise HTTPException(400, detail=ERROR_MESSAGES.INVALID_CRED)
                     payload = {
                         "client_id": getattr(client, "client_id", None),
                         "access_token": token.get("access_token"),
